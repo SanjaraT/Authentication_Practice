@@ -76,5 +76,3 @@ def logout(
     token = credentials.credentials
 
     supabase.auth.sign_out()
-
-print("Server running and connected to Supabase")
