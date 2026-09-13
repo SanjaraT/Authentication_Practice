@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from dotenv import load_dotenv
 from supabase import create_client
@@ -21,9 +21,15 @@ def get_current_user(
         credentials : HTTPAuthorizationCredentials = Depends(security)
 ):
     token = credentials.credentials
-    response = supabase.auth.get_user(token)
+    try:
+        response = supabase.auth.get_user(token)
+        return response.user
 
-    return response.user
+    except Exception:
+        raise HTTPException(
+            status_code = 401,
+            detail={"error": "Invalid or expired token"}
+        )
 
 class AuthReq(BaseModel):
     email: str
@@ -48,11 +54,12 @@ def login(request: AuthReq):
 
     return response
 
-@app.get("/protected")
+@app.get("/protected/profile")
 def protected_route(user=Depends(get_current_user)):
     return {
-        "message": "You are authenticated",
-        "user": user
+        "id": user.id,
+        "email":user.email,
+        "created_at":user.created_at
     }
 
 print("Server running and connected to Supabase")
