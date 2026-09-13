@@ -62,4 +62,19 @@ def protected_route(user=Depends(get_current_user)):
         "created_at":user.created_at
     }
 
+@app.get("/protected/dashboard")
+def protected_dashboard(user=Depends(get_current_user)):
+    return {
+        "message": f"Welcome to your dashboard, {user.email}"
+    }
+
+@app.post("/auth/logout", status_code=204)
+def logout(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    user=Depends(get_current_user)
+):
+    token = credentials.credentials
+
+    supabase.auth.sign_out()
+
 print("Server running and connected to Supabase")
